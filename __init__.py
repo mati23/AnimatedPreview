@@ -22,13 +22,14 @@ from .main import Ui_Form
 import os
 import logging
 from PySide2 import QtWidgets, QtCore
-
+import time
 tools = VIEW3D_PT_tools_active._tools
 
 sculpt_tools = tools['SCULPT']
 
 brushes = list(_defs_sculpt.generate_from_brushes(bpy.context))
-tooltip_active = False
+tooltip_active = {"active": False, "brush": "Clay"}
+print('HERE')
 
 class AnimatedPreview(bpy.types.Operator):
     """Create a new Mesh Object"""
@@ -39,11 +40,12 @@ class AnimatedPreview(bpy.types.Operator):
     bl_category = "Tool"
     bl_options = {'REGISTER','UNDO'}
     
+    active_ = False
 
     
     #bl_space_type = "VIEW_3D"
     def __init__(self):
-        print('initiated')        
+        print('initiated')          
 
     def __del__(self):
         print("End--")
@@ -51,18 +53,18 @@ class AnimatedPreview(bpy.types.Operator):
     x: bpy.props.IntProperty()
     y: bpy.props.IntProperty()
 
+
     def execute(self, context):
+        print('executed')
+        self.current_time = time.time()
+
         self.app = QtWidgets.QApplication.instance()
         
         if not self.app:
-            # create the first instance
             self.app = QtWidgets.QApplication(sys.argv)
         
-        self.widget = Ui_Form()
-        self.widget.setWindowTitle('teste')
-        self.widget.show()
-        
-
+        self.widget = Ui_Form()        
+        self.widget.setVisible(False)
         self.event_loop = QtCore.QEventLoop()
 
 
@@ -74,13 +76,25 @@ class AnimatedPreview(bpy.types.Operator):
         return {'RUNNING_MODAL'}
 
     def modal(self,context,event):
-        wm = context.window_manager
-        qpoint = QtCore.QPoint(event.mouse_x+10, (-event.mouse_y)+730)       
-        
-        if not self.widget.isVisible():                        
-            wm.event_timer_remove(self._timer)            
-            return {'FINISHED'}
+        #wm = context.window_manager
+        global tooltip_active
+        qpoint = QtCore.QPoint(event.mouse_x+10, (-event.mouse_y)+730)
+        print('tooltip is active: ' + str(tooltip_active["brush"]))
+        if tooltip_active["active"] is True:                        
+            self.widget.show()
+                       
+            if (time.time() - self.current_time) > 2:
+                self.current_time = time.time()
+                print('reset')
+                self.set_seconds(False, None)
+            else:
+                print('not reset: ' + str(time.time() - self.current_time) )           
+            
+        #if not self.widget.isVisible():                        
+        #    wm.event_timer_remove(self._timer)            
+        #    return {'FINISHED'}
         else:
+            self.widget.hide()
             self.widget.move(qpoint)
             self.event_loop.processEvents()
             self.app.sendPostedEvents(None,0)
@@ -88,20 +102,22 @@ class AnimatedPreview(bpy.types.Operator):
 
         return {'PASS_THROUGH'}
 
-    @staticmethod
-    def print_tool():
-        return 'impresso'
     
     @staticmethod
-    def tooltip(context, tool, keymap):
-        print(tool.label)  
-        tooltip_active = True
-        print(tooltip_active)
-        return ""
+    def set_seconds(_boolean, label):
+        global tooltip_active
+        tooltip_active["active"] = _boolean
+        tooltip_active["brush"] = label
+    
+
+def tooltip(context, tool, keymap):
+    print(tool.label)  
+    AnimatedPreview.set_seconds(True, tool.label)
+    return ""
 
 for idx, tool in enumerate(brushes):
     new_tool_dict = tool._asdict()
-    new_tool_dict['description'] = AnimatedPreview.tooltip
+    new_tool_dict['description'] = tooltip
     new_tool = ToolDef(*new_tool_dict.values())
     brushes[idx] = new_tool
 

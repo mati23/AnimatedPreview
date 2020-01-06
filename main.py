@@ -5,13 +5,18 @@ from bl_ui.space_toolsystem_toolbar import VIEW3D_PT_tools_active, ToolDef, _def
 
 
 class Ui_Form(QtWidgets.QDialog):
+    label = None
+    size = QtCore.QSize(160, 100)
 
     def __init__(self, parent=None):
         super(Ui_Form, self).__init__(parent)
-        self.size = QtCore.QSize(160, 100
-                                 )
+
+        self.setAnimatedGif('Clay.gif')
+        self.setAnimatedGifLayout()
+
+    def setAnimatedGif(self, gif_path):
         self.pixel = QtGui.QMovie(
-            '/home/mateus/Documents/Blender Projects/preview_animated.gif')
+            '/home/mateus/Documents/Blender Projects/preview_animated/'+gif_path)
         self.pixel.setScaledSize(self.size)
 
         self.setFixedSize(160, 100)
@@ -34,35 +39,11 @@ class Ui_Form(QtWidgets.QDialog):
         self.pixel.start()
         self.label.show()
 
+    def setAnimatedGifLayout(self):
         layout = QtWidgets.QVBoxLayout()
         layout.setMargin(0)
         layout.addWidget(self.label)
-
+        self.setWindowFlags(QtCore.Qt.FramelessWindowHint)
         self.unsetCursor()
 
-        # ----------------------------
-        """
-        tools = VIEW3D_PT_tools_active._tools
-
-        sculpt_tools = tools['SCULPT']
-
-        # Custom tooltip must have 3 parameters and return a string
-        # Called when tool is hovered
-        def tooltip(context, tool, keymap):
-            print(tool.label)
-            return ""
-
-        # Get all tooldefs for builtin brushes
-        brushes = list(_defs_sculpt.generate_from_brushes(bpy.context))
-
-        for idx, tool in enumerate(brushes):
-            new_tool_dict = tool._asdict()
-            new_tool_dict['description'] = tool
-        print("--------------------------------------------------------------")
-        print(new_tool_dict)
-        print("--------------------------------------------------------------")
-        """
-        # ---------------------------
-
         self.setLayout(layout)
-        self.show()
