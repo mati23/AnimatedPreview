@@ -47,3 +47,10 @@ class Ui_Form(QtWidgets.QDialog):
         self.unsetCursor()
 
         self.setLayout(layout)
+
+    def change_gif_file(self, gif_path):
+        self.pixel = QtGui.QMovie(
+            '/home/mateus/Documents/Blender Projects/preview_animated/'+gif_path)
+        self.label.setMovie(self.pixel)
+        self.pixel.start()
+        self.label.show()

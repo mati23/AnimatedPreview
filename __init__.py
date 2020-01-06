@@ -28,7 +28,7 @@ tools = VIEW3D_PT_tools_active._tools
 sculpt_tools = tools['SCULPT']
 
 brushes = list(_defs_sculpt.generate_from_brushes(bpy.context))
-tooltip_active = {"active": False, "brush": "Clay"}
+tooltip_active = {"active": False, "brush": "Clay", "step":0}
 print('HERE')
 
 class AnimatedPreview(bpy.types.Operator):
@@ -81,17 +81,28 @@ class AnimatedPreview(bpy.types.Operator):
         qpoint = QtCore.QPoint(event.mouse_x+10, (-event.mouse_y)+730)
         print('tooltip is active: ' + str(tooltip_active["brush"]))
         if tooltip_active["active"] is True:
-            if (time.time() - self.current_time) > 2:
-                self.current_time = time.time()
-                print('reset')
-                self.set_active_tooltip(False, None)
+            if tooltip_active["step"] == 1:
+                if (time.time() - self.current_time) > 2:
+                    self.current_time = time.time()
+                    print('reset')
+                    self.set_active_tooltip(False, "")
+                else:
+                    print('not reset: ' + str(time.time() - self.current_time) )
             else:
-                print('not reset: ' + str(time.time() - self.current_time) )           
+                tooltip_active["step"] = 1
+                self.show_widget()
+                if (time.time() - self.current_time) > 2:
+                    self.current_time = time.time()
+                    print('reset')
+                    self.set_active_tooltip(False, "")
+                else:
+                    print('not reset: ' + str(time.time() - self.current_time) )           
             
         #if not self.widget.isVisible():                        
         #    wm.event_timer_remove(self._timer)            
         #    return {'FINISHED'}
         else:
+            tooltip_active["step"] = 0
             self.widget.hide()
             self.widget.move(qpoint)
             self.event_loop.processEvents()
@@ -107,36 +118,10 @@ class AnimatedPreview(bpy.types.Operator):
         tooltip_active["active"] = _boolean
         tooltip_active["brush"] = label
     
-def set_layout(widget, gif_path):
-    pixel = QtGui.QMovie(
-            '/home/mateus/Documents/Blender Projects/preview_animated/'+gif_path)
-    pixel.setScaledSize(QtCore.QSize(160, 100))
-    widget.setFixedSize(160, 100)
-    widget.setAttribute(QtCore.Qt.WA_TranslucentBackground, True)
-    widget.setStyleSheet("""
-        QWidget{
-           background: transparent;
-        }
-        QFrame{
-            border-style: solid;
-            border-color: #FE9618;
-            border-width: 2px;
-            border-radius: 3px;
-            background-color: rgba(55, 55, 55, 255);
-        }
-        """)
-
-    label = QtWidgets.QLabel()
-    label.setMovie(pixel)
-    pixel.start()
-    label.show()
-
-    layout = QtWidgets.QVBoxLayout()
-    layout.setMargin(0)
-    layout.addWidget(label)
-    widget.setWindowFlags(QtCore.Qt.FramelessWindowHint)
-    widget.unsetCursor()
-    widget.setLayout(layout)
+    def show_widget(self):
+        self.widget.show()
+        self.widget.setAnimatedGif("Clay")
+        self.widget.setAnimatedGifLayout()
 
 def tooltip(context, tool, keymap):
     print(tool.label)  
