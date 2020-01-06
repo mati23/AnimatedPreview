@@ -21,7 +21,7 @@ from bpy.app.handlers import persistent
 from .main import Ui_Form
 import os
 import logging
-from PySide2 import QtWidgets, QtCore
+from PySide2 import QtWidgets, QtCore, QtGui
 import time
 tools = VIEW3D_PT_tools_active._tools
 
@@ -80,13 +80,11 @@ class AnimatedPreview(bpy.types.Operator):
         global tooltip_active
         qpoint = QtCore.QPoint(event.mouse_x+10, (-event.mouse_y)+730)
         print('tooltip is active: ' + str(tooltip_active["brush"]))
-        if tooltip_active["active"] is True:                        
-            self.widget.show()
-                       
+        if tooltip_active["active"] is True:
             if (time.time() - self.current_time) > 2:
                 self.current_time = time.time()
                 print('reset')
-                self.set_seconds(False, None)
+                self.set_active_tooltip(False, None)
             else:
                 print('not reset: ' + str(time.time() - self.current_time) )           
             
@@ -104,15 +102,45 @@ class AnimatedPreview(bpy.types.Operator):
 
     
     @staticmethod
-    def set_seconds(_boolean, label):
+    def set_active_tooltip(_boolean, label):
         global tooltip_active
         tooltip_active["active"] = _boolean
         tooltip_active["brush"] = label
     
+def set_layout(widget, gif_path):
+    pixel = QtGui.QMovie(
+            '/home/mateus/Documents/Blender Projects/preview_animated/'+gif_path)
+    pixel.setScaledSize(QtCore.QSize(160, 100))
+    widget.setFixedSize(160, 100)
+    widget.setAttribute(QtCore.Qt.WA_TranslucentBackground, True)
+    widget.setStyleSheet("""
+        QWidget{
+           background: transparent;
+        }
+        QFrame{
+            border-style: solid;
+            border-color: #FE9618;
+            border-width: 2px;
+            border-radius: 3px;
+            background-color: rgba(55, 55, 55, 255);
+        }
+        """)
+
+    label = QtWidgets.QLabel()
+    label.setMovie(pixel)
+    pixel.start()
+    label.show()
+
+    layout = QtWidgets.QVBoxLayout()
+    layout.setMargin(0)
+    layout.addWidget(label)
+    widget.setWindowFlags(QtCore.Qt.FramelessWindowHint)
+    widget.unsetCursor()
+    widget.setLayout(layout)
 
 def tooltip(context, tool, keymap):
     print(tool.label)  
-    AnimatedPreview.set_seconds(True, tool.label)
+    AnimatedPreview.set_active_tooltip(True, tool.label)
     return ""
 
 for idx, tool in enumerate(brushes):
