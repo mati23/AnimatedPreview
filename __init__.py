@@ -30,7 +30,6 @@ sculpt_tools = tools['SCULPT']
 brushes = list(_defs_sculpt.generate_from_brushes(bpy.context))
 tooltip_active = {"active": False, "brush": "Clay", "step":0}
 active_tooltip_brush = ""
-print('HERE')
 
 class AnimatedPreview(bpy.types.Operator):
     """Create a new Mesh Object"""
@@ -70,7 +69,7 @@ class AnimatedPreview(bpy.types.Operator):
         
         #self.widget.setVisible(False)
         self.event_loop = QtCore.QEventLoop()
-
+        self.widget.hide()
 
         wm = context.window_manager
         self._timer = wm.event_timer_add(1 / 120, window = context.window)
@@ -87,34 +86,35 @@ class AnimatedPreview(bpy.types.Operator):
         wm = context.window_manager
         
         self.qpoint = QtCore.QPoint(event.mouse_x+10, (-event.mouse_y)+730)
+        self.widget.move(self.qpoint)
         
         if tooltip_active["active"] is True and active_tooltip_brush == tooltip_active["brush"]:
             if tooltip_active["step"] == 1:
-                if (time.time() - self.current_time) > 2:
+                if (time.time() - self.current_time) > 3:
                     self.current_time = time.time()                    
                     self.set_active_tooltip(False, "")
                 else:
-                    print(self.widget.pos())
+                    pass
+                    #print(self.widget.pos())
             else:
                 tooltip_active["step"] = 1
                 self.show_widget(self.qpoint)
-                
-                
-                self.widget.setWindowFlags(QtCore.Qt.FramelessWindowHint)            
-                if (time.time() - self.current_time) > 2:
+                if (time.time() - self.current_time) > 3:
                     self.current_time = time.time()
                     self.set_active_tooltip(False, "")
                 else:
-                    print(self.qpoint)           
+                    pass
+                    #print(self.qpoint)           
             
         #if not self.widget.isVisible():                        
         #    wm.event_timer_remove(self._timer)            
         #    return {'FINISHED'}
         else:
-            tooltip_active["step"] = 0            
-            self.event_loop.processEvents()
-            self.app.sendPostedEvents(None,0)
-        #self.widget.show()               
+            tooltip_active["step"] = 0
+            self.widget.label.hide()            
+        #self.widget.show()         
+        self.event_loop.processEvents()
+        self.app.sendPostedEvents(None,0)      
         
         return {'PASS_THROUGH'}
 
@@ -130,11 +130,10 @@ class AnimatedPreview(bpy.types.Operator):
         global active_tooltip_brush  
         active_tooltip_brush = _label
 
-    def show_widget(self, _qpoint):
-        self.widget.setAnimatedGif("Clay")
-        self.widget.setAnimatedGifLayout(_qpoint)        
-    
-
+    def show_widget(self,_qpoint):
+        self.widget.setAnimatedGif('Clay.gif', _qpoint)
+        self.widget.setAnimatedGifLayout()           
+        time.sleep(1)
 def tooltip(context, tool, keymap):
     global active_tooltip_brush  
     print(tool.label)

@@ -10,17 +10,18 @@ class Ui_Form(QtWidgets.QDialog):
 
     def __init__(self, parent=None):
         super(Ui_Form, self).__init__(parent)
-        self.setAnimatedGif('Clay.gif')
-        self.setAnimatedGifLayout(QtCore.QPoint(0, 0))
+        self.setAnimatedGif('Clay.gif', QtCore.QPoint(0, 0))
+        self.setAnimatedGifLayout()
 
-    def setAnimatedGif(self, gif_path):
+    def setAnimatedGif(self, gif_path, _qpoint):
         self.pixel = QtGui.QMovie(
             '/home/mateus/Documents/Blender Projects/preview_animated/'+gif_path)
         self.pixel.setScaledSize(self.size)
 
         self.setFixedSize(160, 200)
         self.setAttribute(QtCore.Qt.WA_TranslucentBackground, True)
-        self.setStyleSheet("""
+        self.label = QtWidgets.QLabel()
+        self.label.setStyleSheet("""
         QWidget{
            background: transparent;
         }
@@ -33,16 +34,17 @@ class Ui_Form(QtWidgets.QDialog):
         }
         """)
 
-        self.label = QtWidgets.QLabel()
         self.label.setMovie(self.pixel)
         self.pixel.start()
+        self.label.setWindowFlags(QtCore.Qt.FramelessWindowHint)
+        self.label.show()
+        self.label.move(_qpoint)
 
-    def setAnimatedGifLayout(self, _qpoint):
-        layout = QtWidgets.QVBoxLayout()
-        layout.setMargin(0)
-        layout.addWidget(self.label)
-        self.unsetCursor()
-        self.setLayout(layout)
-        self.setWindowFlags(QtCore.Qt.FramelessWindowHint)
-        self.move(_qpoint)
-        self.show()
+    def setAnimatedGifLayout(self):
+        #layout = QtWidgets.QVBoxLayout()
+        # layout.setMargin(0)
+        # layout.addWidget(self.label)
+        # self.setLayout(layout)
+        # self.setWindowFlags(QtCore.Qt.FramelessWindowHint)
+        # self.show()
+        print("showing window")
