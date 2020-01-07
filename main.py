@@ -6,20 +6,19 @@ from bl_ui.space_toolsystem_toolbar import VIEW3D_PT_tools_active, ToolDef, _def
 
 class Ui_Form(QtWidgets.QDialog):
     label = None
-    size = QtCore.QSize(160, 100)
+    size = QtCore.QSize(160, 200)
 
     def __init__(self, parent=None):
         super(Ui_Form, self).__init__(parent)
-
         self.setAnimatedGif('Clay.gif')
-        self.setAnimatedGifLayout()
+        self.setAnimatedGifLayout(QtCore.QPoint(0, 0))
 
     def setAnimatedGif(self, gif_path):
         self.pixel = QtGui.QMovie(
             '/home/mateus/Documents/Blender Projects/preview_animated/'+gif_path)
         self.pixel.setScaledSize(self.size)
 
-        self.setFixedSize(160, 100)
+        self.setFixedSize(160, 200)
         self.setAttribute(QtCore.Qt.WA_TranslucentBackground, True)
         self.setStyleSheet("""
         QWidget{
@@ -37,20 +36,13 @@ class Ui_Form(QtWidgets.QDialog):
         self.label = QtWidgets.QLabel()
         self.label.setMovie(self.pixel)
         self.pixel.start()
-        self.label.show()
 
-    def setAnimatedGifLayout(self):
+    def setAnimatedGifLayout(self, _qpoint):
         layout = QtWidgets.QVBoxLayout()
         layout.setMargin(0)
         layout.addWidget(self.label)
-        self.setWindowFlags(QtCore.Qt.FramelessWindowHint)
         self.unsetCursor()
-
         self.setLayout(layout)
-
-    def change_gif_file(self, gif_path):
-        self.pixel = QtGui.QMovie(
-            '/home/mateus/Documents/Blender Projects/preview_animated/'+gif_path)
-        self.label.setMovie(self.pixel)
-        self.pixel.start()
-        self.label.show()
+        self.setWindowFlags(QtCore.Qt.FramelessWindowHint)
+        self.move(_qpoint)
+        self.show()
