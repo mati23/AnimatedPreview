@@ -6,7 +6,7 @@ from bl_ui.space_toolsystem_toolbar import VIEW3D_PT_tools_active, ToolDef, _def
 
 class Ui_Form(QtWidgets.QDialog):
     label = None
-    size = QtCore.QSize(160, 200)
+    size = QtCore.QSize(160, 100)
 
     def __init__(self, parent=None):
         super(Ui_Form, self).__init__(parent)
@@ -18,7 +18,7 @@ class Ui_Form(QtWidgets.QDialog):
             '/home/mateus/Documents/Blender Projects/preview_animated/'+gif_path)
         self.pixel.setScaledSize(self.size)
 
-        self.setFixedSize(160, 200)
+        self.setFixedSize(160, 100)
         self.setAttribute(QtCore.Qt.WA_TranslucentBackground, True)
         self.label = QtWidgets.QLabel()
         self.label.setStyleSheet("""
@@ -38,6 +38,7 @@ class Ui_Form(QtWidgets.QDialog):
         self.pixel.start()
         self.label.setWindowFlags(QtCore.Qt.FramelessWindowHint)
         self.label.show()
+        self.label.unsetCursor()
         self.label.move(_qpoint)
 
     def setAnimatedGifLayout(self):

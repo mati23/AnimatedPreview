@@ -31,6 +31,32 @@ brushes = list(_defs_sculpt.generate_from_brushes(bpy.context))
 tooltip_active = {"active": False, "brush": "Clay", "step":0}
 active_tooltip_brush = ""
 
+def animation():
+    animation.block = getattr(animation, "block", False)
+
+    if not animation.block:
+        print("playing")
+        return 0.1
+
+animation.block = True
+
+class VIEW3D_OT_poll_region(bpy.types.Operator):
+    bl_idname = "view3d.poll_region"
+    bl_label = "Poll Region"
+    bl_options = {'INTERNAL'}
+
+
+    @classmethod
+    def poll(cls, context):
+        
+        if not animation.block:
+            print("Start blocking animation")
+            animation.block = True
+        return False
+
+    def execute(self, context):
+        return {'CANCELLED'}
+
 class AnimatedPreview(bpy.types.Operator):
     """Create a new Mesh Object"""
     bl_idname = "wm.animated_preview"
@@ -55,9 +81,9 @@ class AnimatedPreview(bpy.types.Operator):
 
 
     def execute(self, context):
-        print('executed')
+        print('executed')        
         self.current_time = time.time()
-
+        
         self.app = QtWidgets.QApplication.instance()
         
         if not self.app:
@@ -67,16 +93,16 @@ class AnimatedPreview(bpy.types.Operator):
         
         self.widget = Ui_Form()   
         
-        #self.widget.setVisible(False)
         self.event_loop = QtCore.QEventLoop()
         self.widget.hide()
-
+        
         wm = context.window_manager
         self._timer = wm.event_timer_add(1 / 120, window = context.window)
+        
         context.window_manager.modal_handler_add(self)
         print('running modal')
         
-
+        
         return {'RUNNING_MODAL'}
 
     def modal(self,context,event):
@@ -84,27 +110,36 @@ class AnimatedPreview(bpy.types.Operator):
         global tooltip_active
         global active_tooltip_brush
         wm = context.window_manager
+
+        kc = bpy.context.window_manager.keyconfigs.addon
+        km = kc.keymaps.get("3D View")
+
+        if not km:
+            km = kc.keymaps.new("3D View", space_type="VIEW_3D")
+
+        kmi = km.keymap_items.get("view3d.poll_region")
+        if not kmi:
+            kmi = km.keymap_items.new("view3d.poll_region", 'MOUSEMOVE', 'ANY', head=1)
+
         
-        self.qpoint = QtCore.QPoint(event.mouse_x+10, (-event.mouse_y)+730)
-        self.widget.move(self.qpoint)
-        
-        if tooltip_active["active"] is True and active_tooltip_brush == tooltip_active["brush"]:
-            if tooltip_active["step"] == 1:
-                if (time.time() - self.current_time) > 3:
-                    self.current_time = time.time()                    
-                    self.set_active_tooltip(False, "")
-                else:
-                    pass
-                    #print(self.widget.pos())
+        self.qpoint = QtCore.QPoint(event.mouse_x+100, (-event.mouse_y)+830)
+        self.widget.move(self.qpoint)        
+        if animation.block == False:
+            if tooltip_active["step"] == 1:                
+                pass
+                
             else:
                 tooltip_active["step"] = 1
                 self.show_widget(self.qpoint)
-                if (time.time() - self.current_time) > 3:
+                
+                """ 
+                if (time.time() - self.current_time) > 1.5:
                     self.current_time = time.time()
                     self.set_active_tooltip(False, "")
                 else:
                     pass
-                    #print(self.qpoint)           
+                    #print(self.qpoint)  
+                """         
             
         #if not self.widget.isVisible():                        
         #    wm.event_timer_remove(self._timer)            
@@ -132,11 +167,12 @@ class AnimatedPreview(bpy.types.Operator):
 
     def show_widget(self,_qpoint):
         self.widget.setAnimatedGif('Clay.gif', _qpoint)
-        self.widget.setAnimatedGifLayout()           
-        time.sleep(1)
+             
 def tooltip(context, tool, keymap):
-    global active_tooltip_brush  
+    global active_tooltip_brush      
     print(tool.label)
+    bpy.app.timers.register(animation)
+    animation.block = False
     AnimatedPreview.set_active_brush(tool.label)
     AnimatedPreview.set_active_tooltip(True, tool.label)    
     return ""
@@ -158,12 +194,15 @@ def menu_func(self,context):
     self.layout.operator(AnimatedPreview.bl_idname)
 
 def register():    
+    bpy.utils.register_class(VIEW3D_OT_poll_region)
     bpy.utils.register_class(AnimatedPreview)  
     bpy.types.VIEW3D_MT_mask.append(menu_func)
 def unregister():
+    bpy.utils.unregister_class(VIEW3D_OT_poll_region)
     bpy.utils.unregister_class(AnimatedPreview)
     bpy.types.VIEW3D_MT_mask.remove(menu_func)
 
-if __name__ == "__main__":  
+if __name__ == "preview_animated":  
     register()    
 
+    
