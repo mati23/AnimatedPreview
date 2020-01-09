@@ -1,3 +1,31 @@
+"""
+-----------------------------------------------------------------------------
+MIT License
+
+Copyright (c) 2020 Mateus Arruda de Medeiros
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+-----------------------------------------------------------------------------
+A special thanks to Kai Jægersen for helping me.
+"""
+
 bl_info = {
     "name": "Animated Preview",
     "author": "Mateus Arruda de Medeiros",
@@ -19,14 +47,9 @@ from mathutils import Vector
 from bl_ui.space_toolsystem_toolbar import VIEW3D_PT_tools_active, ToolDef, _defs_sculpt
 from bpy.app.handlers import persistent
 from .main import Ui_Form
-import os
-import logging
 from PySide2 import QtWidgets, QtCore, QtGui
-import time
 tools = VIEW3D_PT_tools_active._tools
-from Xlib.display import Display
-import Xlib
-from ewmh import EWMH
+
 
 sculpt_tools = tools['SCULPT']
 
@@ -74,22 +97,10 @@ class AnimatedPreview(bpy.types.Operator):
     bl_category = "Tool"
     bl_options = {'REGISTER','UNDO'}
     
-    active_ = False
-    blender = None
-    ewmh = EWMH()
-    wins = ewmh.getClientList()
     
     
     
-    #display = Display()
-    #root = display.screen().root  
-    #NET_ACTIVE_WINDOW = display.intern_atom('_NET_ACTIVE_WINDOW')
-
-    #win_id = root.get_full_property(NET_ACTIVE_WINDOW,Xlib.X.AnyPropertyType).value[0]
-
-
     
-    #bl_space_type = "VIEW_3D"
     def __init__(self):
         print('initiated')          
 
@@ -105,20 +116,11 @@ class AnimatedPreview(bpy.types.Operator):
             print(indent, w.get_wm_class())
             self.printWindowHierrarchy(w, indent+'-')
 
-    def execute(self, context):
-        for i in self.wins:            
-            if (str(self.ewmh.getWmName(i)).find('Blender')) is not -1:
-                self.blender = i
-            
-
-        self.current_time = time.time()
-        
+    def execute(self, context):        
         self.app = QtWidgets.QApplication.instance()
         
         if not self.app:
             self.app = QtWidgets.QApplication(sys.argv)
-        
-        
         
         self.widget = Ui_Form()   
         
@@ -134,8 +136,8 @@ class AnimatedPreview(bpy.types.Operator):
         
         return {'RUNNING_MODAL'}
 
-    def modal(self,context,event):
-        #wm = context.window_manager
+    def modal(self,context,event):    
+        #these variables will be set when tooltip gets active    
         global tooltip_active
         global active_tooltip_brush
         wm = context.window_manager
@@ -148,11 +150,7 @@ class AnimatedPreview(bpy.types.Operator):
                 
             else:
                 tooltip_active["step"] = 1
-                self.show_widget(tooltip_active["brush"], self.qpoint)                  
-                #self.ewmh.setActiveWindow(self.blender)
-                #self.ewmh.display.flush()
-                #self.widget.label.show()
-                #print(self.widget.label.isEnabled())
+                self.show_widget(tooltip_active["brush"], self.qpoint)                                  
                 
         else:
             tooltip_active["step"] = 0
@@ -215,10 +213,7 @@ def unregister():
     bpy.types.VIEW3D_MT_mask.remove(menu_func)
 
 if __name__ == "preview_animated":  
-    register()    
-
-    
-    
+    register()
     kc = bpy.context.window_manager.keyconfigs.addon
     km = kc.keymaps.get("3D View")
 

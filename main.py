@@ -1,4 +1,5 @@
 import sys
+import os
 from PySide2 import QtWidgets, QtGui, QtCore
 import bpy
 from bl_ui.space_toolsystem_toolbar import VIEW3D_PT_tools_active, ToolDef, _defs_sculpt
@@ -15,7 +16,7 @@ class Ui_Form(QtWidgets.QDialog):
 
     def setAnimatedGif(self, gif_path, _qpoint):
         self.pixel = QtGui.QMovie(
-            '/home/mateus/Documents/Blender Projects/preview_animated/gifs/'+gif_path)
+            os.path.dirname(os.path.abspath(__file__)) + '/gifs/'+gif_path)
         self.pixel.setScaledSize(self.size)
 
         self.setFixedSize(160, 100)
