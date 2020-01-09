@@ -15,7 +15,7 @@ class Ui_Form(QtWidgets.QDialog):
 
     def setAnimatedGif(self, gif_path, _qpoint):
         self.pixel = QtGui.QMovie(
-            '/home/mateus/Documents/Blender Projects/preview_animated/'+gif_path)
+            '/home/mateus/Documents/Blender Projects/preview_animated/gifs/'+gif_path)
         self.pixel.setScaledSize(self.size)
 
         self.setFixedSize(160, 100)
@@ -36,9 +36,16 @@ class Ui_Form(QtWidgets.QDialog):
 
         self.label.setMovie(self.pixel)
         self.pixel.start()
-        self.label.setWindowFlags(QtCore.Qt.FramelessWindowHint)
-        self.label.show()
+
         self.label.unsetCursor()
+        self.label.clearFocus()
+
+        self.label.setWindowFlags(
+            QtCore.Qt.FramelessWindowHint | QtCore.Qt.WindowStaysOnTopHint)
+        self.label.setAttribute(QtCore.Qt.WA_ShowWithoutActivating)
+        self.label.setParent(None)
+        self.label.show()
+        self.label.setVisible(True)
         self.label.move(_qpoint)
 
     def setAnimatedGifLayout(self):
